@@ -6,3 +6,17 @@ To compile and run:
 
 $ g++ -O2 -o SolvingDiffEq_Main ./SolvingDiffEq_Main.cpp ./initConds.cpp ./simParams.cpp ./initCondswRestart.cpp ./R0.cpp ./nuF.cpp ./gradOpts.cpp ./Ais.cpp ./fStepCompute2.cpp
 $ ./SolvingDiffEq_Main
+
+Reminders for when using git: 
+
+$ git add FILENAME
+
+adds the file to the staging area, then 
+
+$ git commit 
+
+adds it to the branch. You can also do: 
+
+$ git commit -m "Description of changes here"
+
+to have an in-line description of the changes. 
