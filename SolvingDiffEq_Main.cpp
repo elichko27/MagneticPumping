@@ -15,6 +15,7 @@
 #include "gradOpts.h"
 #include "Ais.h"
 #include "fStepCompute2.h"
+#include "createOutputFile.h"
 using namespace std; 
 
 
@@ -56,7 +57,7 @@ int main () {
   /////////////////////////
   // Computed Parameters //
   /////////////////////////
-  int Ntsteps = int((tMax - tMin)/delT);
+  int Ntsteps = 1;//int((tMax - tMin)/delT);
   int Nvsteps = int((vMax - vMin)/delV);
   
   int ft; 
@@ -88,15 +89,62 @@ int main () {
     }else printf("Opened file successfully for writing.\n");
 
   // Initializing the info file 
-  FILE *outputFile; 
-  if((outputFile = fopen("outputFile.txt", "ab")) == NULL)
+  ofstream outputFile; 
+  createOutputFile(outputFile, isRestart, delT, delV, tMin, tMax, vMin, vMax, Nvsteps, Ntsteps, 
+		   downSampleT, downSampleV, rChoice, regionChoice, distChoice, 
+		   scattType, gradientOption, vthe, memi, B, wpe, wce, wci, beta_e, 
+		   vA, c1, nu, omega, delB, deln, delR, kpar, Lx, l0);
+    //outputFile.open("outputFile.txt"); 
+  /*if((outputFile = fopen("outputFile.txt", "ab")) == NULL)
     {
       printf("Unable to open file!\n");
       exit(1);
-    }else printf("Opened file successfully for writing.\n");
+      }else printf("Opened file successfully for writing.\n");*/
 
   // Adding important information to the output file
+  /*outputFile << "Simulation Variables:" << endl; 
+  outputFile << "delT = " << delT << endl; 
+  outputFile << "delV = " << delV << endl;
+  outputFile << "tMin = " << tMin << endl; 
+  outputFile << "tMax = " << tMax << endl; 
+  outputFile << "vMin = " << vMin << endl; 
+  outputFile << "vMax = " << vMax << endl;
+  outputFile << "Nvsteps = " << Nvsteps << endl;
+  outputFile << "Ntsteps = " << Ntsteps << endl; 
+  outputFile << "downSampleT = " << downSampleT << endl; 
+  outputFile << "downSampleV = " << downSampleV << endl << endl; 
   
+  outputFile << "Physical Variables:" << endl;
+  outputFile << "rChoice = " << rChoice << endl; 
+  outputFile << "regionChoice = " << regionChoice << endl; 
+  outputFile << "distChoice = " << distChoice << endl; 
+  outputFile << "scattType = " << scattType << endl; 
+  outputFile << "gradientOption = " << gradientOption << endl << endl;
+
+  outputFile << "Physical Parameters:" << endl; 
+  outputFile << "vthe = " << vthe << endl; 
+  outputFile << "memi = " << memi << endl; 
+  outputFile << "B = " << B << endl;
+  outputFile << "wpe = " << wpe << endl;
+  outputFile << "wce = " << wce << endl;
+  outputFile << "wci = " << wci << endl;
+  outputFile << "beta_e = " << beta_e << endl;
+  outputFile << "vA = " << vA << endl;
+  outputFile << "c1 = " << c1 << endl;
+  outputFile << "nu = " << nu << endl;
+  outputFile << "vMin = " << vMin << endl;
+  outputFile << "vMax = " << vMax << endl;
+  outputFile << "omega = " << omega << endl;
+  outputFile << "delB = " << delB << endl;
+  outputFile << "deln = " << deln << endl;
+  outputFile << "delR = " << delR << endl;
+  outputFile << "kpar = " << kpar << endl;
+  outputFile << "Lx = " << Lx << endl;
+  outputFile << "l0 = " << l0 << endl << endl;
+
+  outputFile << "Simulation Output:" << endl; 
+
+  outputFile.close(); */
 
   // Displaying the time steps and velocity steps
   cout << "Ntsteps = " << Ntsteps << ", Nvsteps = " << Nvsteps << endl; 
@@ -144,15 +192,15 @@ int main () {
 
   // Closing the file used to save the results
   fclose(ptr_fp);
-  fclose(outputFile); 
+  //fclose(outputFile); 
 
   // Printing the last fMatFinalOld just to see what happens
-  for (int j = 0; j<Nvsteps*n*expansionLevel; j++) { 
+  /*for (int j = 0; j<Nvsteps*n*expansionLevel; j++) { 
     if(j%(Nvsteps) == 0 && j%n == 0 && j != 0)  cout << endl; 
     if(j%(Nvsteps) == 0 && j%expansionLevel == 0 && j != 0) cout << endl;
     if(j%(Nvsteps) == 0 && j%expansionLevel == 0 && j%n == 0) cout << endl <<"expanLevel = " << j/Nvsteps/n << endl;
     cout << " " << fMatFinalOld[j] << " "; 
-  }
+    }*/
 
   // Deleting the matrices created using new
   delete[] fMatFinalOld;
