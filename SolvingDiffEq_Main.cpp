@@ -36,10 +36,8 @@ int main () {
   double tMax = 600; 
 
   bool isRestart = 0; 
-  int downSampleT = 1000; 
+  int downSampleT = 200; 
   int downSampleV = 2; 
-
-  int fMatFinalTMax = 5; 
 
   // Run comparison parameters
   char rChoice[] = "1DMagneticPumping";
@@ -71,37 +69,38 @@ int main () {
   // Initial Conditions and Saving Output Initilization //
   ////////////////////////////////////////////////////////
 
+  // Initializing the matrices that are used to store the data
   int fMatFinalCounter; 
-  //double * fMatFinalOld, fMatFinalNew, fMatFinal; 
   double * fMatFinalOld = new double[Nvsteps*n*expansionLevel];
   double * fMatFinalNew = new double[Nvsteps*n*expansionLevel];
   double * fMatFinal = new double[Nvsteps/downSampleV*n*expansionLevel];
 
   initCondswRestart(fMatFinalCounter, fMatFinalOld, fMatFinalNew, fMatFinal, 
 		    Ntsteps, isRestart, Nvsteps, n, expansionLevel, vthe, delV, vMax, 
-		    distChoice, rChoice, fileTag, tMax, tMin, delT, fMatFinalTMax, 
-		    downSampleT, downSampleV);
+		    distChoice, rChoice, fileTag, tMax, tMin, delT, downSampleT, downSampleV);
 
-  /*ofstream outfile("cppTestOutput.bin", ios::out | ios::binary);
-  if(!outfile) {
-    cout << "Cannot open file.";
-    return 1;
-    }*/ 
-
+  // Initializing the file used to save all the data
   FILE *ptr_fp; 
   if((ptr_fp = fopen("cppTestOutput.bin", "ab")) == NULL)
     {
       printf("Unable to open file!\n");
       exit(1);
     }else printf("Opened file successfully for writing.\n");
+
+  // Initializing the info file 
+  FILE *outputFile; 
+  if((outputFile = fopen("outputFile.txt", "ab")) == NULL)
+    {
+      printf("Unable to open file!\n");
+      exit(1);
+    }else printf("Opened file successfully for writing.\n");
+
+  // Adding important information to the output file
+  
+
+  // Displaying the time steps and velocity steps
   cout << "Ntsteps = " << Ntsteps << ", Nvsteps = " << Nvsteps << endl; 
 
-  /*ptr_fp = fopen("test.bin", "ab");
-  if (ptr_fp == NULL) { 
-    printf("Unable to open file!\n"); 
-    exit(1); 
-  } else printf("Opened file successfully for writing.\n");
-  fclose(ptr_fp); */
 
   ////////////////////////////
   // Running the Simulation //
@@ -116,7 +115,6 @@ int main () {
     // Writing the result to a binary file
     if (i%downSampleT == 0) {
       if (downSampleV == 1) {
-	//outfile.write((char *) &fMatFinalOld, sizeof fMatFinalOld);
 	fwrite(fMatFinalOld, Nvsteps*n*expansionLevel*sizeof(double), 1, ptr_fp);
       } else {
 
@@ -130,10 +128,8 @@ int main () {
 	  jcount++; 
 	}
 
-	//outfile.write((char *) &fMatFinal, sizeof fMatFinal);
 	fwrite(fMatFinal, Nvsteps/downSampleV*n*expansionLevel*sizeof(double), 1, ptr_fp);
       }
-      //cout << "Tstep: " << i << " out of: " << Ntsteps << endl; 
     }
 
     // Computing the next time step
@@ -146,8 +142,10 @@ int main () {
   } //for (int i = 0; i<Ntsteps; i ++)
 
 
-  //outfile.close();
+  // Closing the file used to save the results
   fclose(ptr_fp);
+  fclose(outputFile); 
+
   // Printing the last fMatFinalOld just to see what happens
   for (int j = 0; j<Nvsteps*n*expansionLevel; j++) { 
     if(j%(Nvsteps) == 0 && j%n == 0 && j != 0)  cout << endl; 
@@ -156,10 +154,12 @@ int main () {
     cout << " " << fMatFinalOld[j] << " "; 
   }
 
-  // Calculating how long the code ran for
+  // Deleting the matrices created using new
   delete[] fMatFinalOld;
   delete[] fMatFinalNew;
   delete[] fMatFinal;
+
+  // Calculating how long the code ran for
   time(&end);
   double elapsed_secs = difftime(end,begin);
   cout << endl; 
@@ -180,3 +180,19 @@ int main () {
   cout << "This is the last fMatFinal:" << endl; 
   for(int i = 0; i<Nvsteps*n*expansionLevel; i++) cout << fMatFinalNew[i] << " ";
   cout << endl << endl; */
+
+// Unused code for writing the file
+  /*ofstream outfile("cppTestOutput.bin", ios::out | ios::binary);
+  if(!outfile) {
+    cout << "Cannot open file.";
+    return 1;
+    }*/ 
+  /*ptr_fp = fopen("test.bin", "ab");
+  if (ptr_fp == NULL) { 
+    printf("Unable to open file!\n"); 
+    exit(1); 
+  } else printf("Opened file successfully for writing.\n");
+  fclose(ptr_fp); */
+//outfile.write((char *) &fMatFinalOld, sizeof fMatFinalOld);
+//outfile.write((char *) &fMatFinal, sizeof fMatFinal);
+//outfile.close();
