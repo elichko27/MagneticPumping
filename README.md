@@ -1,7 +1,8 @@
 # MagneticPumping
 
-In this repository is the set of code that I use to 
+In this repository is the set of c++ code that I use to compute the solution for the differential equations and also plot the results. 
 
-1) Put the fluid and particle data from the simulations into a file format that matlab can access easily
+To compile and run: 
 
-2) Analyze and plot the results of the simulations
+$ g++ -O2 -o SolvingDiffEq_Main ./SolvingDiffEq_Main.cpp ./initConds.cpp ./simParams.cpp ./initCondswRestart.cpp ./R0.cpp ./nuF.cpp ./gradOpts.cpp ./Ais.cpp ./fStepCompute2.cpp
+$ ./SolvingDiffEq_Main
