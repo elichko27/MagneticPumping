@@ -271,6 +271,45 @@ void fStepCompute2( double * fMatTempNew, double * fMatTempOld, double * nuFac, 
       } // while (j < n)
 
     } //for (int i=0; i<Nvsteps; i++)
-  } // if (expansionLevel == 5)
+  } else { 
+
+    for(int i=0; i < Nvsteps; i++) { 
+      for(int j=0; j < n; j++) { 
+	for(int k=0; k < expansionLevel; k++) {
+	  fMatTempNew[k*n*Nvsteps + j*Nvsteps + i] = fMatTempOld[k*n*Nvsteps + j*Nvsteps + i]
+	    - delT*((c1 + nuFac[j*Nvsteps + i])*fMatTempOld[k*n*Nvsteps + j*Nvsteps + i]);
+
+	  //addFacfNew(-1.0*delT*dR0*double(i)*delV*fac2, i, j, k, fMatTempNew, i, j, k, fMatTempOld); 
+	  //addFacfNew(-1.0*delT*dR0*Ais(j,1), i, j, k, fMatTempNew, i, j, k, fMatTempOld);
+	  //addFacfNew(-1.0*delT*dn0/2.*double(i)*delV, i, j, k, fMatTempNew, i, j, k, fMatTempOld);
+	  //addFacfNew(-1.0*delT*kpar*double(i)*delV, i, j, k, fMatTempNew, i, j, k, fMatTempOld);
+
+	  // Adding in the n-2 terms if applicable
+	  if (j >= 2) { 
+	    fMatTempNew[k*n*Nvsteps + j*Nvsteps + i] += 
+	      -1.0*delT*(dR0*double(i)*delV*fac1*(1.) 
+			 + dR0*Ais(j,0)*(1.)); 
+	  }
+
+	  // Adding in the n+2 terms if applicable 
+	  if (n > (j + 2)) { 
+	    fMatTempNew[k*n*Nvsteps + j*Nvsteps + i] += 
+	      -1.0*delT*(dR0*double(i)*delV*fac3*(1.) 
+			 + dR0*Ais(j,2)*(1.));
+	  }
+
+	  // Adding in the infinite terms if applicable
+	  if ((n - j) > 4) { 
+	    for(int l=(j+4); l < n; l++) {
+	      fMatTempNew[k*n*Nvsteps + j*Nvsteps + i] += 
+	      -1.0*delT*(dR0*Ais(j,3)*(1.));
+	    }
+	  }
+
+	} // for(int k=0; k < expansionLevel; k++)
+      } // (int j=0; j < n; j++)
+    } // for(int i=0; i < Nvsteps; i++)
+
+  }// if (expansionLevel == 5)
 
 } // void fStepCompute

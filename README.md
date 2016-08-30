@@ -20,3 +20,7 @@ adds it to the branch. You can also do:
 $ git commit -m "Description of changes here"
 
 to have an in-line description of the changes. 
+
+Then when you're sure you want to add it to the main repository type: 
+
+$ git push origin master

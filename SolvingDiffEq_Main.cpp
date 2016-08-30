@@ -16,6 +16,8 @@
 #include "Ais.h"
 #include "fStepCompute2.h"
 #include "createOutputFile.h"
+#include "writeResults.h"
+#include "assignFactors.h"
 using namespace std; 
  
 
@@ -81,6 +83,12 @@ int main () {
 		    Ntsteps, isRestart, Nvsteps, n, expansionLevel, vthe, nu, delV, vMax, 
 		    distChoice, rChoice, fileTag, scattType, tMax, tMin, delT, downSampleT, downSampleV);
 
+
+  double * facMat = new double[expansionLevel*expansionLevel]; 
+  int * expanMat = new int[expansionLevel*expansionLevel]; 
+
+  assignFactors(facMat, expanMat, expansionLevel);
+
   // Initializing the file used to save all the data
   FILE *ptr_fp; 
   if((ptr_fp = fopen("cppTestOutput.bin", "ab")) == NULL)
@@ -133,13 +141,16 @@ int main () {
 	fwrite(fMatFinal, Nvsteps/downSampleV*n*expansionLevel*sizeof(double), 1, ptr_fp);
 	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << endl;
       }
-    }
+      }
+    //writeResults(i, downSampleT, downSampleV, fMatFinalOld, fMatFinal, 
+    //Nvsteps, n, expansionLevel, outputFile, ptr_fp, begin, end);
+    //cout << "Passed writeResults" << endl; 
 
     //cout << "Got this far" << endl; 
     // Computing the next time step
     fStepCompute2( fMatFinalNew, fMatFinalOld, nuFac, delT, delV, c1, nu, omega, vthe, delR, 
 		   deln, Nvsteps, n, expansionLevel, kpar, double(i)*delT, scattType, gradientOption );
-    //cout << "Got this far" << endl; 
+    //cout << "PassedfStepCompute2" << endl; 
 
     // Making the new matrix the old matrix
     copy(fMatFinalNew, fMatFinalNew+Nvsteps*n*expansionLevel, fMatFinalOld);  
@@ -158,6 +169,7 @@ int main () {
   delete[] fMatFinalOld;
   delete[] fMatFinalNew;
   delete[] fMatFinal;
+  delete[] nuFac;
 
   // Calculating how long the code ran for
   time(&end);
