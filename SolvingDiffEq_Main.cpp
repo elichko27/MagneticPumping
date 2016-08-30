@@ -37,7 +37,7 @@ int main () {
   double tMax = 600; 
 
   bool isRestart = 0; 
-  int downSampleT = 200; 
+  int downSampleT = 100; 
   int downSampleV = 2; 
 
   // Run comparison parameters
@@ -57,7 +57,7 @@ int main () {
   /////////////////////////
   // Computed Parameters //
   /////////////////////////
-  int Ntsteps = 1;//int((tMax - tMin)/delT);
+  int Ntsteps = int((tMax - tMin)/delT);
   int Nvsteps = int((vMax - vMin)/delV);
   
   int ft; 
@@ -75,10 +75,11 @@ int main () {
   double * fMatFinalOld = new double[Nvsteps*n*expansionLevel];
   double * fMatFinalNew = new double[Nvsteps*n*expansionLevel];
   double * fMatFinal = new double[Nvsteps/downSampleV*n*expansionLevel];
+  double * nuFac = new double[Nvsteps*n];
 
-  initCondswRestart(fMatFinalCounter, fMatFinalOld, fMatFinalNew, fMatFinal, 
-		    Ntsteps, isRestart, Nvsteps, n, expansionLevel, vthe, delV, vMax, 
-		    distChoice, rChoice, fileTag, tMax, tMin, delT, downSampleT, downSampleV);
+  initCondswRestart(fMatFinalCounter, fMatFinalOld, fMatFinalNew, fMatFinal, nuFac, 
+		    Ntsteps, isRestart, Nvsteps, n, expansionLevel, vthe, nu, delV, vMax, 
+		    distChoice, rChoice, fileTag, scattType, tMax, tMin, delT, downSampleT, downSampleV);
 
   // Initializing the file used to save all the data
   FILE *ptr_fp; 
@@ -94,57 +95,6 @@ int main () {
 		   downSampleT, downSampleV, rChoice, regionChoice, distChoice, 
 		   scattType, gradientOption, vthe, memi, B, wpe, wce, wci, beta_e, 
 		   vA, c1, nu, omega, delB, deln, delR, kpar, Lx, l0);
-    //outputFile.open("outputFile.txt"); 
-  /*if((outputFile = fopen("outputFile.txt", "ab")) == NULL)
-    {
-      printf("Unable to open file!\n");
-      exit(1);
-      }else printf("Opened file successfully for writing.\n");*/
-
-  // Adding important information to the output file
-  /*outputFile << "Simulation Variables:" << endl; 
-  outputFile << "delT = " << delT << endl; 
-  outputFile << "delV = " << delV << endl;
-  outputFile << "tMin = " << tMin << endl; 
-  outputFile << "tMax = " << tMax << endl; 
-  outputFile << "vMin = " << vMin << endl; 
-  outputFile << "vMax = " << vMax << endl;
-  outputFile << "Nvsteps = " << Nvsteps << endl;
-  outputFile << "Ntsteps = " << Ntsteps << endl; 
-  outputFile << "downSampleT = " << downSampleT << endl; 
-  outputFile << "downSampleV = " << downSampleV << endl << endl; 
-  
-  outputFile << "Physical Variables:" << endl;
-  outputFile << "rChoice = " << rChoice << endl; 
-  outputFile << "regionChoice = " << regionChoice << endl; 
-  outputFile << "distChoice = " << distChoice << endl; 
-  outputFile << "scattType = " << scattType << endl; 
-  outputFile << "gradientOption = " << gradientOption << endl << endl;
-
-  outputFile << "Physical Parameters:" << endl; 
-  outputFile << "vthe = " << vthe << endl; 
-  outputFile << "memi = " << memi << endl; 
-  outputFile << "B = " << B << endl;
-  outputFile << "wpe = " << wpe << endl;
-  outputFile << "wce = " << wce << endl;
-  outputFile << "wci = " << wci << endl;
-  outputFile << "beta_e = " << beta_e << endl;
-  outputFile << "vA = " << vA << endl;
-  outputFile << "c1 = " << c1 << endl;
-  outputFile << "nu = " << nu << endl;
-  outputFile << "vMin = " << vMin << endl;
-  outputFile << "vMax = " << vMax << endl;
-  outputFile << "omega = " << omega << endl;
-  outputFile << "delB = " << delB << endl;
-  outputFile << "deln = " << deln << endl;
-  outputFile << "delR = " << delR << endl;
-  outputFile << "kpar = " << kpar << endl;
-  outputFile << "Lx = " << Lx << endl;
-  outputFile << "l0 = " << l0 << endl << endl;
-
-  outputFile << "Simulation Output:" << endl; 
-
-  outputFile.close(); */
 
   // Displaying the time steps and velocity steps
   cout << "Ntsteps = " << Ntsteps << ", Nvsteps = " << Nvsteps << endl; 
@@ -163,7 +113,9 @@ int main () {
     // Writing the result to a binary file
     if (i%downSampleT == 0) {
       if (downSampleV == 1) {
+	time(&end);
 	fwrite(fMatFinalOld, Nvsteps*n*expansionLevel*sizeof(double), 1, ptr_fp);
+	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << endl;
       } else {
 
 	int jcount = 0; 
@@ -172,17 +124,22 @@ int main () {
 	    for(int m = 0; m<expansionLevel; m++) { 
 	      fMatFinal[m*n*Nvsteps/downSampleV + k*Nvsteps/downSampleV + jcount] 
 		= fMatFinalOld[m*n*Nvsteps+k*Nvsteps+j]; 
+	      //cout << j << endl; 
 	    }
 	  jcount++; 
 	}
 
+	time(&end);
 	fwrite(fMatFinal, Nvsteps/downSampleV*n*expansionLevel*sizeof(double), 1, ptr_fp);
+	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << endl;
       }
     }
 
+    //cout << "Got this far" << endl; 
     // Computing the next time step
-    fStepCompute2( fMatFinalNew, fMatFinalOld, delT, delV, c1, nu, omega, vthe, delR, 
+    fStepCompute2( fMatFinalNew, fMatFinalOld, nuFac, delT, delV, c1, nu, omega, vthe, delR, 
 		   deln, Nvsteps, n, expansionLevel, kpar, double(i)*delT, scattType, gradientOption );
+    //cout << "Got this far" << endl; 
 
     // Making the new matrix the old matrix
     copy(fMatFinalNew, fMatFinalNew+Nvsteps*n*expansionLevel, fMatFinalOld);  
@@ -192,15 +149,10 @@ int main () {
 
   // Closing the file used to save the results
   fclose(ptr_fp);
-  //fclose(outputFile); 
+  outputFile.close(); 
 
   // Printing the last fMatFinalOld just to see what happens
-  /*for (int j = 0; j<Nvsteps*n*expansionLevel; j++) { 
-    if(j%(Nvsteps) == 0 && j%n == 0 && j != 0)  cout << endl; 
-    if(j%(Nvsteps) == 0 && j%expansionLevel == 0 && j != 0) cout << endl;
-    if(j%(Nvsteps) == 0 && j%expansionLevel == 0 && j%n == 0) cout << endl <<"expanLevel = " << j/Nvsteps/n << endl;
-    cout << " " << fMatFinalOld[j] << " "; 
-    }*/
+  // printFMat(fMatFinalOld, expansionLevel, n, Nvsteps)
 
   // Deleting the matrices created using new
   delete[] fMatFinalOld;
