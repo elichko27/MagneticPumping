@@ -18,6 +18,10 @@
 #include "createOutputFile.h"
 #include "writeResults.h"
 #include "assignFactors.h"
+#include "findFac.h"
+#include "printMat.h"
+#include "printIntMat.h"
+#include "appendfMatNew.h"
 using namespace std; 
  
 
@@ -59,7 +63,7 @@ int main () {
   /////////////////////////
   // Computed Parameters //
   /////////////////////////
-  int Ntsteps = int((tMax - tMin)/delT);
+  int Ntsteps = 1;//int((tMax - tMin)/delT);
   int Nvsteps = int((vMax - vMin)/delV);
   
   int ft; 
@@ -84,10 +88,19 @@ int main () {
 		    distChoice, rChoice, fileTag, scattType, tMax, tMin, delT, downSampleT, downSampleV);
 
 
-  double * facMat = new double[expansionLevel*expansionLevel]; 
-  int * expanMat = new int[expansionLevel*expansionLevel]; 
+  double * facMat = new double[3*expansionLevel*expansionLevel]; 
+  int * expanMat = new int[3*expansionLevel*expansionLevel]; 
 
   assignFactors(facMat, expanMat, expansionLevel);
+
+  cout << "facMat" << endl; 
+  printMat(facMat, 3, expansionLevel, expansionLevel); 
+  cout << endl << "expanMat" << endl; 
+  printIntMat(expanMat, 3, expansionLevel, expansionLevel); 
+  cout << endl << "nuFac" << endl; 
+  //printMat(nuFac, Nvsteps, n); 
+  cout << nuFac[0] << " " << nuFac[Nvsteps] << " " << nuFac[2*Nvsteps] << endl; 
+  cout << endl; 
 
   // Initializing the file used to save all the data
   FILE *ptr_fp; 
@@ -119,7 +132,7 @@ int main () {
     }
  
     // Writing the result to a binary file
-    if (i%downSampleT == 0) {
+    /*if (i%downSampleT == 0) {
       if (downSampleV == 1) {
 	time(&end);
 	fwrite(fMatFinalOld, Nvsteps*n*expansionLevel*sizeof(double), 1, ptr_fp);
@@ -141,22 +154,23 @@ int main () {
 	fwrite(fMatFinal, Nvsteps/downSampleV*n*expansionLevel*sizeof(double), 1, ptr_fp);
 	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << endl;
       }
-      }
-    //writeResults(i, downSampleT, downSampleV, fMatFinalOld, fMatFinal, 
-    //Nvsteps, n, expansionLevel, outputFile, ptr_fp, begin, end);
+      }*/
+    writeResults(i, downSampleT, downSampleV, fMatFinalOld, fMatFinal, 
+		 Nvsteps, n, expansionLevel, outputFile, ptr_fp, begin, end);
     //cout << "Passed writeResults" << endl; 
 
     //cout << "Got this far" << endl; 
     // Computing the next time step
     fStepCompute2( fMatFinalNew, fMatFinalOld, nuFac, delT, delV, c1, nu, omega, vthe, delR, 
-		   deln, Nvsteps, n, expansionLevel, kpar, double(i)*delT, scattType, gradientOption );
+		   deln, Nvsteps, n, expansionLevel, kpar, double(i)*delT, scattType, gradientOption, 
+		   facMat, expanMat);
     //cout << "PassedfStepCompute2" << endl; 
 
     // Making the new matrix the old matrix
     copy(fMatFinalNew, fMatFinalNew+Nvsteps*n*expansionLevel, fMatFinalOld);  
 
   } //for (int i = 0; i<Ntsteps; i ++)
-
+  cout << "Finished compuatation - closing files now. " << endl; 
 
   // Closing the file used to save the results
   fclose(ptr_fp);
@@ -170,6 +184,9 @@ int main () {
   delete[] fMatFinalNew;
   delete[] fMatFinal;
   delete[] nuFac;
+
+  delete[] facMat; 
+  delete[] expanMat;
 
   // Calculating how long the code ran for
   time(&end);

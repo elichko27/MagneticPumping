@@ -10,11 +10,12 @@
 #include "gradOpts.h"
 #include "Ais.h"
 #include "fStepCompute2.h"
+#include "appendfMatNew.h"
 
 void fStepCompute2( double * fMatTempNew, double * fMatTempOld, double * nuFac, double delT, double delV, 
 		   double c1, double nu, double omega, double vthe, double delR, 
 		   double deln, int Nvsteps, int n, int expansionLevel, double kpar, double t, 
-		   char * scattType, char * gradientOption ) {
+		    char * scattType, char * gradientOption, double *facMat, int * expanMat ) {
 
   //Error catching 
   if (expansionLevel%2 != 1) {
@@ -26,7 +27,7 @@ void fStepCompute2( double * fMatTempNew, double * fMatTempOld, double * nuFac, 
   //double nuFac1[Nvsteps]; 
   //double nuFacn[Nvsteps]; 
   double jd, fac1, fac2, fac3; 
-  int j; 
+  int i, j, k; 
 
   double dR0 = R0(omega, delR, t);
   double dn0 = R0(omega, deln, t); 
@@ -94,6 +95,7 @@ void fStepCompute2( double * fMatTempNew, double * fMatTempOld, double * nuFac, 
 		- 2.*kpar/3.*double(i)*delV*fMatTempOld[3*n*Nvsteps + 1*Nvsteps + i] 
 		+ dn0/2.*double(i)*delV*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 2*n*Nvsteps + 0*Nvsteps)); 
 
+      // The f1 terms
       //nuF(nuFac, nu, 1, vthe, delV, Nvsteps, scattType);
 
       fMatTempNew[0*n*Nvsteps + 1*Nvsteps + i] = fMatTempOld[0*n*Nvsteps + 1*Nvsteps + i]
@@ -165,6 +167,7 @@ void fStepCompute2( double * fMatTempNew, double * fMatTempOld, double * nuFac, 
 		   + dR0/2.*177./70.*fMatTempOld[2*n*Nvsteps + 3*Nvsteps + i]); 
       }
 
+      // Higher order terms/equations
       j = 2; 
       while (j < n) {
 	   
@@ -245,32 +248,98 @@ void fStepCompute2( double * fMatTempNew, double * fMatTempOld, double * nuFac, 
 
 	if (n > (j+2)) {
 	  fMatTempNew[0*n*Nvsteps + j*Nvsteps + i] += 
-	  -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 1*n*Nvsteps + (j+2)*Nvsteps)
-		  + dR0/2.*Ais(j,2)*fMatTempOld[1*n*Nvsteps + (j+2)*Nvsteps + i]); 
-
-	fMatTempNew[1*n*Nvsteps + j*Nvsteps + i] += 
-	  -1.*delT*(dR0*double(i)*delV*fac3*(gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 0*n*Nvsteps + (j+2)*Nvsteps) 
-					+ 1./2.*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 3*n*Nvsteps + (j+2)*Nvsteps))
-		  + dR0*Ais(j,2)*(fMatTempOld[0*n*Nvsteps + (j+2)*Nvsteps + i] 
-				  + 1./2.*fMatTempOld[3*n*Nvsteps + (j+2)*Nvsteps + i]));
-
-	fMatTempNew[2*n*Nvsteps + j*Nvsteps + i] += 
-	  -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 4*n*Nvsteps + (j+2)*Nvsteps)
-		  + dR0/2.*Ais(j,2)*fMatTempOld[4*n*Nvsteps + (j+2)*Nvsteps + i]); 
-	
-	fMatTempNew[3*n*Nvsteps + j*Nvsteps + i] += 
-	  -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 1*n*Nvsteps + (j+2)*Nvsteps)
-		  + dR0/2.*Ais(j,2)*fMatTempOld[1*n*Nvsteps + (j+2)*Nvsteps + i]); 
-
-	fMatTempNew[4*n*Nvsteps + j*Nvsteps + i] += 
-	  -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 2*n*Nvsteps + (j+2)*Nvsteps)
-		  + dR0/2.*Ais(j,2)*fMatTempOld[2*n*Nvsteps + (j+2)*Nvsteps + i]);
+	    -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 1*n*Nvsteps + (j+2)*Nvsteps)
+		      + dR0/2.*Ais(j,2)*fMatTempOld[1*n*Nvsteps + (j+2)*Nvsteps + i]); 
+	  
+	  fMatTempNew[1*n*Nvsteps + j*Nvsteps + i] += 
+	    -1.*delT*(dR0*double(i)*delV*fac3*(gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 0*n*Nvsteps + (j+2)*Nvsteps) 
+					       + 1./2.*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 3*n*Nvsteps + (j+2)*Nvsteps))
+		      + dR0*Ais(j,2)*(fMatTempOld[0*n*Nvsteps + (j+2)*Nvsteps + i] 
+				      + 1./2.*fMatTempOld[3*n*Nvsteps + (j+2)*Nvsteps + i]));
+	  
+	  fMatTempNew[2*n*Nvsteps + j*Nvsteps + i] += 
+	    -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 4*n*Nvsteps + (j+2)*Nvsteps)
+		      + dR0/2.*Ais(j,2)*fMatTempOld[4*n*Nvsteps + (j+2)*Nvsteps + i]); 
+	  
+	  fMatTempNew[3*n*Nvsteps + j*Nvsteps + i] += 
+	    -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 1*n*Nvsteps + (j+2)*Nvsteps)
+		      + dR0/2.*Ais(j,2)*fMatTempOld[1*n*Nvsteps + (j+2)*Nvsteps + i]); 
+	  
+	  fMatTempNew[4*n*Nvsteps + j*Nvsteps + i] += 
+	    -1.*delT*(dR0/2.*double(i)*delV*fac3*gradOpts(fMatTempOld, delT, i, 0, Nvsteps, 2*n*Nvsteps + (j+2)*Nvsteps)
+		      + dR0/2.*Ais(j,2)*fMatTempOld[2*n*Nvsteps + (j+2)*Nvsteps + i]);
 	}
-
+	
 	j++;
       } // while (j < n)
 
     } //for (int i=0; i<Nvsteps; i++)
-  } // if (expansionLevel == 5)
+  } else { 
+    
+    char isGrad[] = "Grad"; 
+    char isntGrad[] = "NoGrad"; 
+    
+    for(k = 0; k < expansionLevel; k++) { 
+      for(j = 0; j < n; j++) { 
+	jd = double(j); 
+	fac1 = 3./2.*jd*(jd-1)/(2.*jd-3.)/(2.*jd-1.);
+	fac2 = 3./2.*(pow(jd+1.,2.)/(2.*jd+1.)/(2.*jd+3.) 
+			+ pow(jd,2.)/(2*jd+1)/(2.*jd-1.)) - 1./2.;
+	fac3 = 3./2.*(jd+1.)*(jd+2.)/(2.*jd+3.)/(2.*jd+5.);
+	
+	for(i = 0; i < Nvsteps; i++) { 
+
+	  fMatTempNew[k*n*Nvsteps + j*Nvsteps + i] = fMatTempOld[k*n*Nvsteps + j*Nvsteps + i];
+	  
+	  appendfMatNew(i, j, k, fMatTempNew, i, j, k, fMatTempOld, 
+			-1.0*delT*dR0*fac2*double(i)*delV, facMat, expanMat, isGrad, 
+			1, expansionLevel, Nvsteps, n, delV); 
+	  appendfMatNew(i, j, k, fMatTempNew, i, j, k, fMatTempOld, 
+			-1.0*delT*dR0*Ais(j,1), facMat, expanMat, isntGrad, 
+			1, expansionLevel, Nvsteps, n, delV);
+	  appendfMatNew(i, j, k, fMatTempNew, i, j, k, fMatTempOld, 
+			-1.0*delT*dn0*double(i)*delV, facMat, expanMat, isGrad, 
+			1, expansionLevel, Nvsteps, n, delV);
+
+	  if (j-2 >= 0) {
+	    appendfMatNew(i, j, k, fMatTempNew, i, j-2, k, fMatTempOld, 
+			  -1.0*delT*dR0*fac1*double(i)*delV, facMat, expanMat, isGrad, 
+			  1, expansionLevel, Nvsteps, n, delV); 
+	    appendfMatNew(i, j, k, fMatTempNew, i, j-2, k, fMatTempOld, 
+			  -1.0*delT*dR0*Ais(j,0), facMat, expanMat, isntGrad, 
+			  1, expansionLevel, Nvsteps, n, delV);
+	  }
+
+	  if (j-1 >= 0 && k != 0 && kpar != 0.) { 
+	    appendfMatNew(i, j, k, fMatTempNew, i, j-1, k, fMatTempOld, 
+			  -1.0*delT*kpar*double(i)*delV*jd/(2.*jd -1.), facMat, expanMat, isntGrad, 
+			  0, expansionLevel, Nvsteps, n, delV);
+	  }
+
+	  if (n > j+1 && k != 0 && kpar != 0.) { 
+	    appendfMatNew(i, j, k, fMatTempNew, i, j+1, k, fMatTempOld, 
+			  -1.0*delT*kpar*double(i)*delV*(jd + 1.)/(2.*jd + 3.), facMat, expanMat, isntGrad, 
+			  0, expansionLevel, Nvsteps, n, delV);
+	  }
+	  
+	  if (n > j+2) {
+	    appendfMatNew(i, j, k, fMatTempNew, i, j+2, k, fMatTempOld, 
+			  -1.0*delT*dR0*fac3*double(i)*delV, facMat, expanMat, isGrad, 
+			  1, expansionLevel, Nvsteps, n, delV); 
+	    appendfMatNew(i, j, k, fMatTempNew, i, j+2, k, fMatTempOld, 
+			  -1.0*delT*dR0*Ais(j,2), facMat, expanMat, isntGrad, 
+			  1, expansionLevel, Nvsteps, n, delV);
+	  }
+
+	  // Adding in infinite terms
+	  if (n > j+4 && n >= 5) { 
+	    // count down using for loop and II -= 2 to 0 && append appropriately
+	  }
+
+	}
+      }
+    }
+    
+  }// if (expansionLevel == 5)
 
 } // void fStepCompute

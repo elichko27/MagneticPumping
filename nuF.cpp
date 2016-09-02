@@ -11,7 +11,7 @@ void nuF(double * nuFac, double nu, int n, double vthe,
   double fac1; 
 
   for(int j = 0; j < n; j++){
-    fac1 = -1*double(j)*(1+double(j)); 
+    fac1 = double(j)*(1+double(j)); //negative sign? 
     if (j == 0) { 
       for(int i=0;i<Nvsteps;i++) nuFac[j*Nvsteps + i] = 0.0;
     } else if (strcmp(scattType, "Constant") == 0) { 
