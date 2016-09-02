@@ -1,7 +1,7 @@
 #ifndef CREATEOUTPUTFILE_H
 #define CREATEOUTPUTFILE_H
 
-void createOutputFile (std::ofstream & outputFile, bool isRestart, double delT, double delV, 
+void createOutputFile (std::ofstream & outputFile, FILE * ptr_fp, bool isRestart, double delT, double delV, 
 		       double tMin, double tMax, double vMin, double vMax, int Nvsteps, int Ntsteps, 
 		       int downSampleT, int downSampleV, char * rChoice, char * regionChoice, 
 		       char * distChoice, char * scattType, char * gradientOption, double vthe, 

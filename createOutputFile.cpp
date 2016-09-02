@@ -9,7 +9,7 @@
 #include <ctime>
 #include "createOutputFile.h"
 
-void createOutputFile (std::ofstream & outputFile, bool isRestart, double delT, double delV, 
+void createOutputFile (std::ofstream & outputFile, FILE * ptr_fp, bool isRestart, double delT, double delV, 
 		       double tMin, double tMax, double vMin, double vMax, int Nvsteps, int Ntsteps, 
 		       int downSampleT, int downSampleV, char * rChoice, char * regionChoice, 
 		       char * distChoice, char * scattType, char * gradientOption, double vthe, 
@@ -22,7 +22,15 @@ void createOutputFile (std::ofstream & outputFile, bool isRestart, double delT, 
     std::cout << "Restart -> appending already existing outfile" << std::endl; 
   } else {
 
+    // Opening output file 
     outputFile.open("outputFile.txt"); 
+
+    // Opening saving file
+    /*if((ptr_fp = fopen("cppTestOutput.bin", "ab")) == NULL)
+      {
+	printf("Unable to open file!\n");
+	exit(1);
+	}else printf("Opened file successfully for writing.\n");*/
     
     // Adding important information to the output file
     outputFile << "Simulation Variables:" << std::endl; 

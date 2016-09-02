@@ -97,8 +97,7 @@ int main () {
   printMat(facMat, 3, expansionLevel, expansionLevel); 
   cout << endl << "expanMat" << endl; 
   printIntMat(expanMat, 3, expansionLevel, expansionLevel); 
-  cout << endl << "nuFac" << endl; 
-  //printMat(nuFac, Nvsteps, n); 
+  cout << endl << "nuFac" << endl;  
   cout << nuFac[0] << " " << nuFac[Nvsteps] << " " << nuFac[2*Nvsteps] << endl; 
   cout << endl; 
 
@@ -108,11 +107,11 @@ int main () {
     {
       printf("Unable to open file!\n");
       exit(1);
-    }else printf("Opened file successfully for writing.\n");
+      }else printf("Opened file successfully for writing.\n");
 
   // Initializing the info file 
   ofstream outputFile; 
-  createOutputFile(outputFile, isRestart, delT, delV, tMin, tMax, vMin, vMax, Nvsteps, Ntsteps, 
+  createOutputFile(outputFile, ptr_fp, isRestart, delT, delV, tMin, tMax, vMin, vMax, Nvsteps, Ntsteps, 
 		   downSampleT, downSampleV, rChoice, regionChoice, distChoice, 
 		   scattType, gradientOption, vthe, memi, B, wpe, wce, wci, beta_e, 
 		   vA, c1, nu, omega, delB, deln, delR, kpar, Lx, l0);
@@ -132,13 +131,13 @@ int main () {
     }
  
     // Writing the result to a binary file
-    /*if (i%downSampleT == 0) {
+    if (i%downSampleT == 0) {
       if (downSampleV == 1) {
 	time(&end);
 	fwrite(fMatFinalOld, Nvsteps*n*expansionLevel*sizeof(double), 1, ptr_fp);
-	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << endl;
+	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << std::endl;
       } else {
-
+	
 	int jcount = 0; 
 	for(int j = 0; j<Nvsteps; j+=downSampleV) {
 	  for(int k = 0; k<n; k++) 
@@ -148,23 +147,22 @@ int main () {
 	      //cout << j << endl; 
 	    }
 	  jcount++; 
+	  //std::cout << "jcount is: " << jcount << "Nvsteps is: " << Nvsteps << std::endl; 
 	}
-
+	std::cout << "Passed assigning fMatFinalOld to fMatFinal" << std::endl; 
 	time(&end);
+	std::cout << "Passed the time step" << std::endl; 
 	fwrite(fMatFinal, Nvsteps/downSampleV*n*expansionLevel*sizeof(double), 1, ptr_fp);
-	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << endl;
+	outputFile << i << " tSteps in : " << difftime(end, begin) << " seconds" << std::endl;
       }
-      }*/
-    writeResults(i, downSampleT, downSampleV, fMatFinalOld, fMatFinal, 
-		 Nvsteps, n, expansionLevel, outputFile, ptr_fp, begin, end);
-    //cout << "Passed writeResults" << endl; 
+    }
+     //writeResults(i, downSampleT, downSampleV, fMatFinalOld, fMatFinal, 
+     //Nvsteps, n, expansionLevel, outputFile, ptr_fp, begin, end);
 
-    //cout << "Got this far" << endl; 
     // Computing the next time step
     fStepCompute2( fMatFinalNew, fMatFinalOld, nuFac, delT, delV, c1, nu, omega, vthe, delR, 
 		   deln, Nvsteps, n, expansionLevel, kpar, double(i)*delT, scattType, gradientOption, 
 		   facMat, expanMat);
-    //cout << "PassedfStepCompute2" << endl; 
 
     // Making the new matrix the old matrix
     copy(fMatFinalNew, fMatFinalNew+Nvsteps*n*expansionLevel, fMatFinalOld);  
@@ -196,6 +194,7 @@ int main () {
   cout << "Program is finished in: " << elapsed_secs << "secs" << endl << endl; 
   return 0; 
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Unused loading code
   /*  int size_of_vec = Nvsteps*n*expansionLevel*2; 
